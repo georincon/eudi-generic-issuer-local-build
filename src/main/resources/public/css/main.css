@@ -1,3 +1,10 @@
+/* ============================================================
+   UIS Academic Credential Issuer - Main Stylesheet
+   Universidad Industrial de Santander
+   Brand Colors: Green #006837 | Blue #066aab | Dark #1a237e
+   ============================================================ */
+
+/* --- Original EUDI styles (kept for backward compatibility) --- */
 .eudiw-logo {
     min-width: 150px;
     min-height: 150px;
@@ -12,4 +19,212 @@
 
 .credentials-offer-uri {
     word-break: break-all;
+}
+
+/* --- UIS Branding --- */
+:root {
+    --uis-green: #006837;
+    --uis-green-dark: #004d2c;
+    --uis-green-light: #e8f5e9;
+    --uis-blue: #066aab;
+    --uis-blue-dark: #04507a;
+    --uis-blue-light: #e3f2fd;
+    --uis-navy: #1a237e;
+    --uis-navy-dark: #0d1547;
+    --uis-gold: #f9a825;
+    --uis-gray: #f5f5f5;
+    --uis-text: #333333;
+    --uis-text-light: #666666;
+    --uis-border: #e0e0e0;
+    --uis-success: #2e7d32;
+    --uis-danger: #c62828;
+    --uis-warning: #f57f17;
+}
+
+/* --- Header --- */
+.uis-header {
+    background: linear-gradient(135deg, var(--uis-green) 0%, var(--uis-blue) 100%);
+    color: white;
+    padding: 20px 24px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 104, 55, 0.15);
+}
+
+.uis-logo {
+    max-height: 80px;
+    width: auto;
+}
+
+.uis-logo-large {
+    max-height: 100px;
+    width: auto;
+}
+
+/* --- Buttons --- */
+.btn-uis {
+    background-color: var(--uis-green);
+    border-color: var(--uis-green);
+    color: #ffffff !important;
+    font-weight: 600;
+    padding: 10px 24px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.btn-uis:hover {
+    background-color: var(--uis-green-dark);
+    border-color: var(--uis-green-dark);
+    color: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 104, 55, 0.3);
+}
+
+.btn-uis:disabled {
+    background-color: #9e9e9e;
+    border-color: #9e9e9e;
+    color: #ffffff !important;
+    opacity: 0.7;
+}
+
+.btn-uis-blue {
+    background-color: var(--uis-blue);
+    border-color: var(--uis-blue);
+    color: #ffffff !important;
+}
+
+.btn-uis-blue:hover {
+    background-color: var(--uis-blue-dark);
+    border-color: var(--uis-blue-dark);
+    color: #ffffff !important;
+}
+
+.btn-uis-outline {
+    background-color: transparent;
+    border-color: var(--uis-green);
+    color: var(--uis-green) !important;
+}
+
+.btn-uis-outline:hover {
+    background-color: var(--uis-green);
+    color: #ffffff !important;
+}
+
+/* --- Cards --- */
+.lookup-card {
+    max-width: 600px;
+    margin: 0 auto;
+    border: 1px solid var(--uis-border);
+    border-radius: 12px;
+    padding: 32px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+    background: #ffffff;
+}
+
+.program-card {
+    border: 2px solid var(--uis-border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    background: #ffffff;
+}
+
+.program-card:hover {
+    border-color: var(--uis-green);
+    box-shadow: 0 4px 12px rgba(0, 104, 55, 0.12);
+    transform: translateY(-2px);
+}
+
+.program-card.selected {
+    border-color: var(--uis-green);
+    background-color: var(--uis-green-light);
+    box-shadow: 0 4px 16px rgba(0, 104, 55, 0.2);
+}
+
+.program-card input[type="radio"] {
+    display: none;
+}
+
+/* --- Student Info Bar --- */
+.student-info {
+    background-color: var(--uis-gray);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--uis-green);
+}
+
+/* --- QR Code Container --- */
+.qr-container {
+    background: white;
+    border: 2px solid var(--uis-border);
+    border-radius: 12px;
+    padding: 24px;
+    display: inline-block;
+    margin: 20px 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* --- Badges --- */
+.badge-graduado {
+    background-color: var(--uis-success);
+    color: #ffffff;
+}
+
+.badge-activo {
+    background-color: var(--uis-blue);
+    color: #ffffff;
+}
+
+.badge-retirado {
+    background-color: var(--uis-danger);
+    color: #ffffff;
+}
+
+.badge-pausa {
+    background-color: var(--uis-warning);
+    color: #ffffff;
+}
+
+/* --- Forms --- */
+.form-control:focus {
+    border-color: var(--uis-green);
+    box-shadow: 0 0 0 0.2rem rgba(0, 104, 55, 0.15);
+}
+
+.form-label strong {
+    color: var(--uis-text);
+}
+
+/* --- Alerts --- */
+.alert-info {
+    background-color: var(--uis-blue-light);
+    border-color: var(--uis-blue);
+    color: var(--uis-blue-dark);
+}
+
+/* --- Links --- */
+a {
+    color: var(--uis-blue);
+}
+
+a:hover {
+    color: var(--uis-green);
+}
+
+/* --- Section Titles --- */
+.section-title {
+    color: var(--uis-green);
+    border-bottom: 2px solid var(--uis-green);
+    padding-bottom: 8px;
+    margin-bottom: 16px;
+}
+
+/* --- Footer accent --- */
+.uis-footer-accent {
+    height: 4px;
+    background: linear-gradient(90deg, var(--uis-green) 0%, var(--uis-blue) 50%, var(--uis-gold) 100%);
+    border-radius: 2px;
+    margin-top: 24px;
 }

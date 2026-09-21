@@ -110,8 +110,10 @@ data class StudentProgramInfo(
     val codigo: String,
     val nombrePrograma: String,
     val nivelAcademico: String,
+    val modalidad: String,
     val tituloOtorgado: String,
     val facultad: String?,
+    val unidadAcademica: String?,
     val estadoAcademico: String,
     val fechaIngreso: String?,
     val fechaDeGrado: String?,
@@ -195,8 +197,8 @@ class GetAcademicDataFromDatabase(
         val query =
             """
             SELECT h.id_historial, h.programa_id, p.codigo, p.nombre, p.nivel_academico,
-                   p.titulo_otorgado, p.facultad, h.estado_academico,
-                   h.fecha_ingreso, h.fecha_de_grado, h.promedio_acumulado,
+                   p.modalidad, p.titulo_otorgado, p.facultad, p.unidad_academica,
+                   h.estado_academico, h.fecha_ingreso, h.fecha_de_grado, h.promedio_acumulado,
                    h.creditos_aprobados, h.semestres_cursados,
                    p.duracion_semestres, p.creditos
             FROM historial_estudiantes h
@@ -216,8 +218,10 @@ class GetAcademicDataFromDatabase(
                     codigo = row.get("codigo") as String,
                     nombrePrograma = row.get("nombre") as String,
                     nivelAcademico = row.get("nivel_academico") as String,
+                    modalidad = row.get("modalidad") as String,
                     tituloOtorgado = row.get("titulo_otorgado") as String,
                     facultad = row.get("facultad") as? String,
+                    unidadAcademica = row.get("unidad_academica") as? String,
                     estadoAcademico = row.get("estado_academico") as String,
                     fechaIngreso = row.get("fecha_ingreso")?.toString(),
                     fechaDeGrado = row.get("fecha_de_grado")?.toString(),

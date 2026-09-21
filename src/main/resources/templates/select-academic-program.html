@@ -3,207 +3,137 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css"
-          th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
-    <link rel="stylesheet" type="text/css"
-          th:href="@{/public/css/main.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/public/css/main.css}">
     <title>UIS :: Seleccionar Programa Académico</title>
-    <style>
-        .uis-header {
-            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
-            color: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .uis-logo {
-            max-height: 80px;
-        }
-        .program-card {
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .program-card:hover {
-            border-color: #1a237e;
-            box-shadow: 0 2px 8px rgba(26, 35, 126, 0.15);
-            transform: translateY(-1px);
-        }
-        .program-card.selected {
-            border-color: #1a237e;
-            background-color: #e8eaf6;
-            box-shadow: 0 2px 12px rgba(26, 35, 126, 0.2);
-        }
-        .program-card input[type="radio"] {
-            display: none;
-        }
-        .badge-graduado {
-            background-color: #2e7d32;
-        }
-        .badge-activo {
-            background-color: #1565c0;
-        }
-        .badge-retirado {
-            background-color: #c62828;
-        }
-        .badge-pausa {
-            background-color: #f57f17;
-        }
-        .btn-uis {
-            background-color: #1a237e;
-            border-color: #1a237e;
-        }
-        .btn-uis:hover {
-            background-color: #0d47a1;
-            border-color: #0d47a1;
-        }
-        .student-info {
-            background-color: #f5f5f5;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-        }
-    </style>
 </head>
 <body>
 <main>
     <div class="container p-4">
-        <div class="row gy-2 mb-4">
-            <div class="col d-flex justify-content-start align-items-center">
-                <img class="uis-logo"
-                     th:src="@{/public/img/uis-logo.svg}"
-                     alt="Universidad Industrial de Santander"/>
-            </div>
-            <div class="col d-flex justify-content-center align-items-center">
-                <h2>Seleccionar Programa Académico</h2>
+
+        <!-- Header -->
+        <div class="row mb-3">
+            <div class="col text-center">
+                <img th:src="@{/public/img/uis-logo-large.svg}" alt="UIS" style="max-height: 70px;">
+                <h2 class="mb-0 mt-2" style="color: var(--uis-green); font-weight: 700;">Universidad Industrial de Santander</h2>
+                <p class="mb-0" style="color: var(--uis-blue);">Emisor de Credenciales Académicas</p>
             </div>
         </div>
 
         <!-- Student Info -->
-        <!--/*@thymesVar id="student" type="eu.europa.ec.eudi.pidissuer.adapter.out.attestation.academic.GetAcademicDataFromDatabase$StudentRecord"*/-->
         <div class="student-info" th:if="${student}">
             <div class="row">
-                <div class="col-md-6">
-                    <strong>Nombre:</strong> <span th:text="${student.nombres} + ' ' + ${student.apellidos}"></span>
-                </div>
-                <div class="col-md-3">
-                    <strong>Documento:</strong> <span th:text="${student.tipoIdentificacion} + ' ' + ${student.numeroIdentificacion}"></span>
-                </div>
-                <div class="col-md-3">
-                    <strong>Correo:</strong> <span th:text="${student.correoElectronico} ?: 'N/A'"></span>
-                </div>
+                <div class="col-md-3"><strong>Nombre:</strong> <span th:text="${student.nombres} + ' ' + ${student.apellidos}"></span></div>
+                <div class="col-md-3"><strong>Documento:</strong> <span th:text="${student.tipoIdentificacion} + ' ' + ${student.numeroIdentificacion}"></span></div>
+                <div class="col-md-3"><strong>Correo:</strong> <span th:text="${student.correoElectronico} ?: 'N/A'"></span></div>
+                <div class="col-md-3 text-end"><span class="badge badge-activo">Verificado</span></div>
             </div>
         </div>
 
-        <!-- Program Selection -->
-        <div class="row mb-2">
-            <div class="col">
-                <h4>Seleccione el programa para el cual desea la credencial:</h4>
-                <p class="text-muted">Solo se mostrarán programas con registros académicos.</p>
-            </div>
+        <!-- Credential Type Badge -->
+        <div class="mb-3" th:if="${credentialType}">
+            <span class="badge" style="background:var(--uis-green);color:white;font-size:0.9em;">
+                Tipo de Credencial: <span th:text="${credentialType}">vc_sd_jwt</span>
+            </span>
         </div>
 
-        <form id="select-program-form"
-              method="post"
-              enctype="application/x-www-form-urlencoded"
-              th:action="@{/issuer/credentialsOffer/selectProgram}">
+        <!-- Title -->
+        <h3 style="color: var(--uis-green); font-weight: 700;">Seleccionar Programa Académico</h3>
+        <p class="text-muted">Seleccione el programa para el cual desea obtener la credencial digital.</p>
 
+        <!-- Program Cards -->
+        <form id="select-program-form" method="post" enctype="application/x-www-form-urlencoded" th:action="@{/issuer/credentialsOffer/selectProgram}">
             <input type="hidden" name="usuarioAutenticacion" th:value="${student.usuarioAutenticacion}">
             <input type="hidden" name="numeroIdentificacion" th:value="${student.numeroIdentificacion}">
-            <input type="hidden" name="credentialsOfferUri" th:value="${credentialsOfferUri}">
+            <input type="hidden" name="credentialType" th:value="${credentialType} ?: 'vc_sd_jwt'">
+            <input type="hidden" name="credentialsOfferUri" th:value="${credentialsOfferUri} ?: 'eu-eaa-offer://'">
+            <input type="hidden" name="historialId" id="selectedHistorialId" value="">
+            <input type="hidden" name="programaId" id="selectedProgramaId" value="">
 
-            <div class="row mb-3">
-                <!--/*@thymesVar id="programs" type="kotlin.collections.List"*/-->
-                <div class="col-md-6" th:each="program : ${programs}">
-                    <div class="program-card" th:onclick="'selectProgram(' + ${program.historialId} + ',' + ${program.programaId} + ')'">
-                        <input type="radio" name="historialId" th:value="${program.historialId}" th:id="'prog-' + ${program.historialId}">
-                        <input type="hidden" name="programaId" th:value="${program.programaId}" th:id="'progId-' + ${program.historialId}">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <h6 class="mb-1" th:text="${program.nombrePrograma}">Programa</h6>
-                                <small class="text-muted" th:text="'Código: ' + ${program.codigo}">Código</small>
-                            </div>
-                            <div>
+            <div class="row mb-4">
+                <div class="col-md-6 mb-3" th:each="program : ${programs}">
+                    <div class="card h-100 program-card" th:attr="data-historial=${program.historialId}, data-programa=${program.programaId}" style="cursor:pointer;border:2px solid #dee2e6;transition:all 0.2s;">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <h6 class="card-title fw-bold mb-1" th:text="${program.nombrePrograma}">Programa</h6>
+                                    <small class="text-muted" th:text="'Código: ' + ${program.codigo}">Código</small>
+                                </div>
                                 <span class="badge"
                                       th:classappend="${program.estadoAcademico == 'GRADUADO'} ? 'badge-graduado' : (${program.estadoAcademico == 'ACTIVO'} ? 'badge-activo' : (${program.estadoAcademico == 'RETIRADO'} ? 'badge-retirado' : 'badge-pausa'))"
                                       th:text="${program.estadoAcademico}">ESTADO</span>
                             </div>
-                        </div>
-                        <hr class="my-2">
-                        <div class="row small">
-                            <div class="col-6">
-                                <strong>Nivel:</strong> <span th:text="${program.nivelAcademico}">Nivel</span>
+                            <hr class="my-2">
+                            <div class="row small">
+                                <div class="col-6 mb-1"><strong class="text-muted">Nivel:</strong> <span th:text="${program.nivelAcademico}"></span></div>
+                                <div class="col-6 mb-1"><strong class="text-muted">Modalidad:</strong> <span th:text="${program.modalidad}"></span></div>
                             </div>
-                            <div class="col-6">
-                                <strong>Título:</strong> <span th:text="${program.tituloOtorgado}">Título</span>
+                            <div class="row small mb-1"><div class="col-12"><strong class="text-muted">Título:</strong> <span th:text="${program.tituloOtorgado}"></span></div></div>
+                            <div class="row small mb-1" th:if="${program.facultad}"><div class="col-12"><strong class="text-muted">Facultad:</strong> <span th:text="${program.facultad}"></span></div></div>
+                            <div class="row small mb-1" th:if="${program.unidadAcademica}"><div class="col-12"><strong class="text-muted">Unidad:</strong> <span th:text="${program.unidadAcademica}"></span></div></div>
+                            <div class="row small mt-2 p-2 rounded" style="background:var(--uis-gray);">
+                                <div class="col-4 text-center">
+                                    <div class="fw-bold" style="color:var(--uis-green);" th:text="${program.creditosAprobados} + '/' + ${program.totalCredits}"></div>
+                                    <small class="text-muted">Créditos</small>
+                                </div>
+                                <div class="col-4 text-center">
+                                    <div class="fw-bold" style="color:var(--uis-blue);" th:text="${program.semestresCursados} + '/' + ${program.duracionSemestres}"></div>
+                                    <small class="text-muted">Semestres</small>
+                                </div>
+                                <div class="col-4 text-center" th:if="${program.promedioAcumulado}">
+                                    <div class="fw-bold" style="color:var(--uis-success);" th:text="${program.promedioAcumulado}"></div>
+                                    <small class="text-muted">Promedio</small>
+                                </div>
                             </div>
-                        </div>
-                        <div class="row small mt-1" th:if="${program.facultad}">
-                            <div class="col-12">
-                                <strong>Facultad:</strong> <span th:text="${program.facultad}">Facultad</span>
-                            </div>
-                        </div>
-                        <div class="row small mt-1">
-                            <div class="col-4">
-                                <strong>Créditos:</strong> <span th:text="${program.creditosAprobados} + '/' + ${program.totalCredits}">Créditos</span>
-                            </div>
-                            <div class="col-4">
-                                <strong>Semestres:</strong> <span th:text="${program.semestresCursados} + '/' + ${program.duracionSemestres}">Semestres</span>
-                            </div>
-                            <div class="col-4" th:if="${program.promedioAcumulado}">
-                                <strong>Promedio:</strong> <span th:text="${program.promedioAcumulado}">Promedio</span>
-                            </div>
-                        </div>
-                        <div class="row small mt-1" th:if="${program.fechaDeGrado}">
-                            <div class="col-12">
-                                <strong>Fecha de Grado:</strong> <span th:text="${program.fechaDeGrado}">Fecha</span>
+                            <div class="row small mt-2" th:if="${program.fechaDeGrado}">
+                                <div class="col-12"><span style="color:var(--uis-success);"><strong>Fecha de Grado:</strong> <span th:text="${program.fechaDeGrado}"></span></span></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="row mb-2 p-2">
-                <div class="col d-flex justify-content-start align-content-center">
-                    <a th:href="@{/issuer/credentialsOffer/generate}" class="btn btn-outline-secondary">
-                        Volver
-                    </a>
+            <!-- Action Buttons -->
+            <div class="row p-3 rounded" style="background:var(--uis-gray);">
+                <div class="col d-flex justify-content-start">
+                    <a th:href="@{/issuer/credentialsOffer/selectCredentialTypeBack(usuarioAutenticacion=${student.usuarioAutenticacion}, numeroIdentificacion=${student.numeroIdentificacion}, tipoDocumento=${student.tipoIdentificacion}, credentialsOfferUri=${credentialsOfferUri})}" class="btn btn-uis-outline">← Volver</a>
                 </div>
-                <div class="col d-flex justify-content-end align-content-center">
-                    <button id="selectButton" type="submit" class="btn btn-uis" disabled>
-                        Generar Credencial
-                    </button>
+                <div class="col d-flex justify-content-end">
+                    <button id="selectButton" type="submit" class="btn btn-uis btn-lg" disabled>Generar Credencial Académica</button>
                 </div>
             </div>
         </form>
+
+        <div class="row mt-4"><div class="col"><div class="uis-footer-accent"></div></div></div>
     </div>
 </main>
 
 <script type="application/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
-<script type="application/javascript">
-    let selectedHistorialId = null;
-    let selectedProgramaId = null;
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var cards = document.querySelectorAll('.program-card');
 
-    function selectProgram(historialId, programaId) {
-        // Deselect all
-        document.querySelectorAll('.program-card').forEach(card => {
-            card.classList.remove('selected');
+    cards.forEach(function(card) {
+        card.addEventListener('click', function() {
+            // Remove selection from all cards
+            cards.forEach(function(c) {
+                c.style.borderColor = '#dee2e6';
+                c.style.boxShadow = 'none';
+            });
+
+            // Select this card
+            this.style.borderColor = 'var(--uis-green)';
+            this.style.boxShadow = '0 4px 12px rgba(0,104,55,0.2)';
+
+            // Set hidden fields
+            document.getElementById('selectedHistorialId').value = this.getAttribute('data-historial');
+            document.getElementById('selectedProgramaId').value = this.getAttribute('data-programa');
+
+            // Enable button
+            document.getElementById('selectButton').disabled = false;
         });
-
-        // Select this one
-        event.currentTarget.classList.add('selected');
-        selectedHistorialId = historialId;
-        selectedProgramaId = programaId;
-
-        // Set the radio button
-        document.getElementById('prog-' + historialId).checked = true;
-
-        // Enable submit button
-        document.getElementById('selectButton').disabled = false;
-    }
+    });
+});
 </script>
 </body>
 </html>

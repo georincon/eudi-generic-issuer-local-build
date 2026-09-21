@@ -55,14 +55,28 @@ class IssuerUi(
                 contentType(MediaType.ALL) and accept(MediaType.TEXT_HTML),
             ) { handleDisplayDocumentForm() }
 
-            // Step 2: Look up student by document number, show programs
+            // Step 2: Look up student by document number, show credential type selection
             POST(
                 GENERATE_CREDENTIALS_OFFER,
                 contentType(MediaType.APPLICATION_FORM_URLENCODED) and accept(MediaType.TEXT_HTML),
                 ::handleLookupStudent,
             )
 
-            // Step 3: Save selection and generate credential offer
+            // Step 3: Select credential type and show programs
+            POST(
+                SELECT_CREDENTIAL_TYPE,
+                contentType(MediaType.APPLICATION_FORM_URLENCODED) and accept(MediaType.TEXT_HTML),
+                ::handleSelectCredentialType,
+            )
+
+            // Step 3b: Go back from program selection to credential type selection
+            GET(
+                SELECT_CREDENTIAL_TYPE_BACK,
+                contentType(MediaType.ALL) and accept(MediaType.TEXT_HTML),
+                ::handleSelectCredentialTypeBack,
+            )
+
+            // Step 4: Save selection and generate credential offer
             POST(
                 SELECT_PROGRAM,
                 contentType(MediaType.APPLICATION_FORM_URLENCODED) and accept(MediaType.TEXT_HTML),
@@ -121,6 +135,44 @@ class IssuerUi(
                 )
         }
 
+        val usefulLinks = createUsefulLinks(metadata.id, metadata.authorizationServers[0])
+        return ServerResponse
+            .ok()
+            .contentType(MediaType.TEXT_HTML)
+            .renderAndAwait(
+                "select-credential-type",
+                mapOf(
+                    "student" to student,
+                    "credentialsOfferUri" to (credentialsOfferUri ?: createCredentialsOffer.defaultCredentialOfferUri.toString()),
+                    "openid4VciVersion" to OpenId4VciSpec.VERSION,
+                    "usefulLinks" to usefulLinks,
+                ),
+            )
+    }
+
+    private suspend fun handleSelectCredentialType(request: ServerRequest): ServerResponse {
+        log.info("Selecting credential type and loading programs")
+        val formData = request.awaitFormData()
+        val usuarioAutenticacion = formData["usuarioAutenticacion"]?.firstOrNull().orEmpty()
+        val numeroIdentificacion = formData["numeroIdentificacion"]?.firstOrNull().orEmpty()
+        val credentialType = formData["credentialType"]?.firstOrNull().orEmpty()
+        val credentialsOfferUri = formData["credentialsOfferUri"]?.firstOrNull()
+
+        val student = getAcademicDataFromDatabase.findStudentByDocumentNumber(numeroIdentificacion)
+        if (student == null) {
+            return ServerResponse
+                .ok()
+                .contentType(MediaType.TEXT_HTML)
+                .renderAndAwait(
+                    "generate-credentials-offer-form",
+                    mapOf(
+                        "error" to "No se encontró estudiante con documento: $numeroIdentificacion",
+                        "credentialsOfferUri" to (credentialsOfferUri ?: createCredentialsOffer.defaultCredentialOfferUri.toString()),
+                        "openid4VciVersion" to OpenId4VciSpec.VERSION,
+                    ),
+                )
+        }
+
         val programs = getAcademicDataFromDatabase.findStudentPrograms(student.usuarioAutenticacion)
         if (programs.isEmpty()) {
             return ServerResponse
@@ -145,7 +197,37 @@ class IssuerUi(
                 mapOf(
                     "student" to student,
                     "programs" to programs,
+                    "credentialType" to credentialType,
                     "credentialsOfferUri" to (credentialsOfferUri ?: createCredentialsOffer.defaultCredentialOfferUri.toString()),
+                    "openid4VciVersion" to OpenId4VciSpec.VERSION,
+                    "usefulLinks" to usefulLinks,
+                ),
+            )
+    }
+
+    private suspend fun handleSelectCredentialTypeBack(request: ServerRequest): ServerResponse {
+        log.info("Going back to credential type selection")
+        val usuarioAutenticacion = request.queryParam("usuarioAutenticacion").orElse("").orEmpty()
+        val numeroIdentificacion = request.queryParam("numeroIdentificacion").orElse("").orEmpty()
+        val tipoDocumento = request.queryParam("tipoDocumento").orElse("").orEmpty()
+        val credentialsOfferUri = request.queryParam("credentialsOfferUri").orElse("")
+
+        val student = getAcademicDataFromDatabase.findStudentByDocumentNumber(numeroIdentificacion)
+        if (student == null) {
+            return ServerResponse
+                .status(HttpStatus.TEMPORARY_REDIRECT)
+                .renderAndAwait("redirect:$GENERATE_CREDENTIALS_OFFER")
+        }
+
+        val usefulLinks = createUsefulLinks(metadata.id, metadata.authorizationServers[0])
+        return ServerResponse
+            .ok()
+            .contentType(MediaType.TEXT_HTML)
+            .renderAndAwait(
+                "select-credential-type",
+                mapOf(
+                    "student" to student,
+                    "credentialsOfferUri" to (credentialsOfferUri.ifBlank { createCredentialsOffer.defaultCredentialOfferUri.toString() }),
                     "openid4VciVersion" to OpenId4VciSpec.VERSION,
                     "usefulLinks" to usefulLinks,
                 ),
@@ -217,6 +299,8 @@ class IssuerUi(
 
     companion object {
         const val GENERATE_CREDENTIALS_OFFER: String = "/issuer/credentialsOffer/generate"
+        const val SELECT_CREDENTIAL_TYPE: String = "/issuer/credentialsOffer/selectCredentialType"
+        const val SELECT_CREDENTIAL_TYPE_BACK: String = "/issuer/credentialsOffer/selectCredentialTypeBack"
         const val SELECT_PROGRAM: String = "/issuer/credentialsOffer/selectProgram"
         private val log = LoggerFactory.getLogger(IssuerUi::class.java)
     }

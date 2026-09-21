@@ -60,6 +60,8 @@ fun configureUiSecurity(
                 "",
                 "/",
                 IssuerUi.GENERATE_CREDENTIALS_OFFER,
+                IssuerUi.SELECT_CREDENTIAL_TYPE,
+                IssuerUi.SELECT_CREDENTIAL_TYPE_BACK,
                 IssuerUi.SELECT_PROGRAM,
             )
 
@@ -82,7 +84,7 @@ fun configureUiSecurity(
                 policyDirectives =
                     nonEmptyListOf(
                         "default-src 'self'",
-                        "script-src 'self'",
+                        "script-src 'self' 'unsafe-inline'",
                         "style-src 'self' 'unsafe-inline'",
                         "img-src 'self' data:",
                         "object-src 'none'",
