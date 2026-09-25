@@ -190,6 +190,41 @@ class GetAcademicDataFromDatabase(
     }
 
     /**
+     * Validate a student's login credentials against datos_estudiantes.
+     * Returns the student's info on success, null on invalid credentials.
+     */
+    suspend fun authenticateStudent(
+        usuarioAutenticacion: String,
+        claveAutenticacion: String,
+    ): StudentInfo? {
+        log.info("Authenticating student: {}", usuarioAutenticacion)
+        val query =
+            """
+            SELECT usuario_autenticacion, nombres, apellidos, tipo_identificacion,
+                   numero_identificacion, correo_electronico, numero_contacto
+            FROM datos_estudiantes
+            WHERE usuario_autenticacion = :username AND clave_autenticacion = :password
+            """.trimIndent()
+
+        return databaseClient
+            .sql(query)
+            .bind("username", usuarioAutenticacion)
+            .bind("password", claveAutenticacion)
+            .map { row, _ ->
+                StudentRecord(
+                    usuarioAutenticacion = row.get("usuario_autenticacion") as String,
+                    nombres = row.get("nombres") as String,
+                    apellidos = row.get("apellidos") as String,
+                    tipoIdentificacion = row.get("tipo_identificacion") as String,
+                    numeroIdentificacion = row.get("numero_identificacion") as String,
+                    correoElectronico = row.get("correo_electronico") as? String,
+                    numeroContacto = row.get("numero_contacto") as? String,
+                )
+            }.awaitOneOrNull()
+            ?.toStudentInfo()
+    }
+
+    /**
      * Fetch all academic programs for a student (by usuario_autenticacion).
      */
     suspend fun findStudentPrograms(usuarioAutenticacion: String): List<StudentProgramInfo> {
@@ -434,6 +469,7 @@ class GetAcademicDataFromDatabase(
                     type = IdentificationType.valueOf(student.tipoIdentificacion),
                     number = student.numeroIdentificacion,
                 ),
+            username = NonBlankString(student.usuarioAutenticacion),
             familyName = NonBlankString(student.apellidos),
             givenName = NonBlankString(student.nombres),
             email = student.correoElectronico,
@@ -460,7 +496,7 @@ class GetAcademicDataFromDatabase(
                     status = AcademicStatus.valueOf(history.estadoAcademico),
                 ),
             dateOfIssuance = localDate,
-            documentNumber = null,
+            documentNumber = student.numeroIdentificacion,
         )
     }
 }

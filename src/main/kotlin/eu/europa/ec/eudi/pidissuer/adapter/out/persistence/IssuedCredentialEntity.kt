@@ -29,7 +29,7 @@ import kotlin.time.toKotlinInstant
 import kotlin.uuid.toJavaUuid
 import kotlin.uuid.toKotlinUuid
 
-@Table("issued_credential")
+@Table("academic_credential")
 data class IssuedCredentialEntity(
     @Id
     @Column("id")

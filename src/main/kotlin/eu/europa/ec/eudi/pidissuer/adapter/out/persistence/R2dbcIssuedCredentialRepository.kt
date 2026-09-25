@@ -40,16 +40,16 @@ interface IssuedCredentialR2dbcRepository :
 
     @Query(
         """
-        SELECT * FROM issued_credential
+        SELECT * FROM academic_credential
         WHERE expires_at > :now
         """,
     )
     fun findAllActive(now: OffsetDateTime): Flow<IssuedCredentialEntity>
 
-    @Query("DELETE FROM issued_credential WHERE expires_at <= :now")
+    @Query("DELETE FROM academic_credential WHERE expires_at <= :now")
     suspend fun deleteAllExpiredBefore(now: OffsetDateTime): Int?
 
-    @Query("DELETE FROM issued_credential WHERE identifier = :identifier")
+    @Query("DELETE FROM academic_credential WHERE identifier = :identifier")
     suspend fun deleteByIdentifier(identifier: UUID): Int?
 }
 

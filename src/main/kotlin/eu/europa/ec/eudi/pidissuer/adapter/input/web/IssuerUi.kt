@@ -27,10 +27,13 @@ import eu.europa.ec.eudi.pidissuer.port.out.qr.Dimensions
 import eu.europa.ec.eudi.pidissuer.port.out.qr.Format
 import eu.europa.ec.eudi.pidissuer.port.out.qr.GenerateQqCode
 import eu.europa.ec.eudi.pidissuer.port.out.qr.Pixels
+import kotlinx.coroutines.reactor.awaitSingle
+import kotlinx.coroutines.reactor.awaitSingleOrNull
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.web.reactive.function.server.*
+import org.springframework.web.server.WebSession
 import kotlin.io.encoding.Base64
 
 class IssuerUi(
@@ -45,15 +48,33 @@ class IssuerUi(
             (GET("") or GET("/")) {
                 log.info("Redirecting to {}", GENERATE_CREDENTIALS_OFFER)
                 ServerResponse
-                    .status(HttpStatus.TEMPORARY_REDIRECT)
+                    .status(HttpStatus.SEE_OTHER)
                     .renderAndAwait("redirect:$GENERATE_CREDENTIALS_OFFER")
             }
+
+            // Display student login form
+            GET(
+                LOGIN,
+                contentType(MediaType.ALL) and accept(MediaType.TEXT_HTML),
+                ::handleDisplayLogin,
+            )
+
+            // Validate student credentials against datos_estudiantes
+            POST(
+                LOGIN,
+                contentType(MediaType.APPLICATION_FORM_URLENCODED) and accept(MediaType.TEXT_HTML),
+                ::handleLogin,
+            )
+
+            // End the student session
+            (GET(LOGOUT) or POST(LOGOUT)) { handleLogout(it) }
 
             // Display 'generate credentials offer' form (Step 1: enter document number)
             GET(
                 GENERATE_CREDENTIALS_OFFER,
                 contentType(MediaType.ALL) and accept(MediaType.TEXT_HTML),
-            ) { handleDisplayDocumentForm() }
+                ::handleDisplayDocumentForm,
+            )
 
             // Step 2: Look up student by document number, show credential type selection
             POST(
@@ -84,7 +105,76 @@ class IssuerUi(
             )
         }
 
-    private suspend fun handleDisplayDocumentForm(): ServerResponse {
+    private suspend fun handleDisplayLogin(request: ServerRequest): ServerResponse {
+        log.info("Displaying student login form")
+        val session = request.session().awaitSingle()
+        if (session.attributes[SESSION_STUDENT_USERNAME] != null) {
+            return ServerResponse
+                .status(HttpStatus.SEE_OTHER)
+                .renderAndAwait("redirect:$GENERATE_CREDENTIALS_OFFER")
+        }
+        return ServerResponse
+            .ok()
+            .contentType(MediaType.TEXT_HTML)
+            .renderAndAwait("login", emptyMap<String, Any>())
+    }
+
+    private suspend fun handleLogin(request: ServerRequest): ServerResponse {
+        val formData = request.awaitFormData()
+        val usuario = formData["usuario"]?.firstOrNull()?.trim().orEmpty()
+        val clave = formData["clave"]?.firstOrNull().orEmpty()
+        log.info("Login attempt for username: {}", usuario)
+
+        if (usuario.isBlank() || clave.isBlank()) {
+            return ServerResponse
+                .badRequest()
+                .contentType(MediaType.TEXT_HTML)
+                .renderAndAwait(
+                    "login",
+                    mapOf("error" to "Debe ingresar usuario y contraseña", "usuario" to usuario),
+                )
+        }
+
+        val student = getAcademicDataFromDatabase.authenticateStudent(usuario, clave)
+        if (student == null) {
+            log.warn("Failed login attempt for username: {}", usuario)
+            return ServerResponse
+                .status(HttpStatus.UNAUTHORIZED)
+                .contentType(MediaType.TEXT_HTML)
+                .renderAndAwait(
+                    "login",
+                    mapOf("error" to "Usuario o contraseña incorrectos", "usuario" to usuario),
+                )
+        }
+
+        val session = request.session().awaitSingle()
+        session.attributes[SESSION_STUDENT_USERNAME] = student.usuarioAutenticacion
+        session.attributes[SESSION_STUDENT_FULLNAME] = "${student.nombres} ${student.apellidos}"
+        log.info("Student {} logged in successfully", student.usuarioAutenticacion)
+
+        return ServerResponse
+            .status(HttpStatus.SEE_OTHER)
+            .renderAndAwait("redirect:$GENERATE_CREDENTIALS_OFFER")
+    }
+
+    private suspend fun handleLogout(request: ServerRequest): ServerResponse {
+        val session = request.session().awaitSingle()
+        log.info("Logging out student: {}", session.attributes[SESSION_STUDENT_USERNAME])
+        session.invalidate().awaitSingleOrNull()
+        return ServerResponse
+            .status(HttpStatus.SEE_OTHER)
+            .renderAndAwait("redirect:$LOGIN")
+    }
+
+    private suspend fun ServerRequest.requireStudentSession(): WebSession? {
+        val session = session().awaitSingle()
+        return if (session.attributes[SESSION_STUDENT_USERNAME] != null) session else null
+    }
+
+    private suspend fun handleDisplayDocumentForm(request: ServerRequest): ServerResponse {
+        val session = request.requireStudentSession()
+            ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+
         log.info("Displaying document number lookup form")
         val usefulLinks = createUsefulLinks(metadata.id, metadata.authorizationServers[0])
         return ServerResponse
@@ -96,11 +186,15 @@ class IssuerUi(
                     "credentialsOfferUri" to createCredentialsOffer.defaultCredentialOfferUri.toString(),
                     "openid4VciVersion" to OpenId4VciSpec.VERSION,
                     "usefulLinks" to usefulLinks,
+                    "studentFullName" to session.attributes[SESSION_STUDENT_FULLNAME],
                 ),
             )
     }
 
     private suspend fun handleLookupStudent(request: ServerRequest): ServerResponse {
+        request.requireStudentSession()
+            ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+
         log.info("Looking up student by document number")
         val formData = request.awaitFormData()
         val documentoIdentidad = formData["documentoIdentidad"]?.firstOrNull()?.trim().orEmpty()
@@ -151,6 +245,9 @@ class IssuerUi(
     }
 
     private suspend fun handleSelectCredentialType(request: ServerRequest): ServerResponse {
+        request.requireStudentSession()
+            ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+
         log.info("Selecting credential type and loading programs")
         val formData = request.awaitFormData()
         val usuarioAutenticacion = formData["usuarioAutenticacion"]?.firstOrNull().orEmpty()
@@ -206,6 +303,9 @@ class IssuerUi(
     }
 
     private suspend fun handleSelectCredentialTypeBack(request: ServerRequest): ServerResponse {
+        request.requireStudentSession()
+            ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+
         log.info("Going back to credential type selection")
         val usuarioAutenticacion = request.queryParam("usuarioAutenticacion").orElse("").orEmpty()
         val numeroIdentificacion = request.queryParam("numeroIdentificacion").orElse("").orEmpty()
@@ -215,7 +315,7 @@ class IssuerUi(
         val student = getAcademicDataFromDatabase.findStudentByDocumentNumber(numeroIdentificacion)
         if (student == null) {
             return ServerResponse
-                .status(HttpStatus.TEMPORARY_REDIRECT)
+                .status(HttpStatus.SEE_OTHER)
                 .renderAndAwait("redirect:$GENERATE_CREDENTIALS_OFFER")
         }
 
@@ -235,6 +335,9 @@ class IssuerUi(
     }
 
     private suspend fun handleSelectProgram(request: ServerRequest): ServerResponse {
+        request.requireStudentSession()
+            ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+
         log.debug("Saving selection and generating credential offer")
         val formData = request.awaitFormData()
         val usuarioAutenticacion = formData["usuarioAutenticacion"]?.firstOrNull().orEmpty()
@@ -298,10 +401,14 @@ class IssuerUi(
     }
 
     companion object {
+        const val LOGIN: String = "/issuer/login"
+        const val LOGOUT: String = "/issuer/logout"
         const val GENERATE_CREDENTIALS_OFFER: String = "/issuer/credentialsOffer/generate"
         const val SELECT_CREDENTIAL_TYPE: String = "/issuer/credentialsOffer/selectCredentialType"
         const val SELECT_CREDENTIAL_TYPE_BACK: String = "/issuer/credentialsOffer/selectCredentialTypeBack"
         const val SELECT_PROGRAM: String = "/issuer/credentialsOffer/selectProgram"
+        private const val SESSION_STUDENT_USERNAME: String = "studentUsername"
+        private const val SESSION_STUDENT_FULLNAME: String = "studentFullName"
         private val log = LoggerFactory.getLogger(IssuerUi::class.java)
     }
 }

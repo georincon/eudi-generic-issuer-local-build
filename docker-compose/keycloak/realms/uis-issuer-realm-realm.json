@@ -1,6 +1,6 @@
 {
   "id": "a5ab7927-1882-402a-b6ce-407bc3c76b20",
-  "realm": "pid-issuer-realm",
+  "realm": "uis-issuer-realm",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -65,7 +65,7 @@
       },
       {
         "id": "a95188ef-e3d9-40db-8e05-8390464f837e",
-        "name": "default-roles-pid-issuer-realm",
+        "name": "default-roles-uis-issuer-realm",
         "description": "${role_default-roles}",
         "composite": true,
         "composites": {
@@ -320,7 +320,7 @@
         }
       ],
       "wallet-dev": [],
-      "pid-issuer-srv": [
+      "uis-issuer-srv": [
         {
           "id": "3dc8b2ac-0fbc-40cf-9aae-20d3505ef434",
           "name": "uma_protection",
@@ -533,13 +533,13 @@
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/pid-issuer-realm/account/",
+      "baseUrl": "/realms/uis-issuer-realm/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/pid-issuer-realm/account/*"
+        "/realms/uis-issuer-realm/account/*"
       ],
       "webOrigins": [
         "*"
@@ -571,13 +571,13 @@
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/pid-issuer-realm/account/",
+      "baseUrl": "/realms/uis-issuer-realm/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/realms/pid-issuer-realm/account/*"
+        "/realms/uis-issuer-realm/account/*"
       ],
       "webOrigins": [
         "*"
@@ -742,16 +742,17 @@
         "eu.europa.ec.eudi.pid_vc_sd_jwt",
         "eu.europa.ec.eudi.pid_mso_mdoc",
         "org.iso.18013.5.1.mDL",
-        "urn:eu.europa.ec.eudi:learning:credential:1:dc+sd-jwt"
+        "urn:eu.europa.ec.eudi:learning:credential:1:dc+sd-jwt",
+        "urn:eudi:academic:credential:1:dc+sd-jwt"
       ]
     },
     {
       "id": "bde36dee-e6d6-4112-b540-23748761a95d",
-      "clientId": "pid-issuer-srv",
+      "clientId": "uis-issuer-srv",
       "name": "PID Issuer service",
       "description": "",
-      "rootUrl": "http://localhost:8080",
-      "adminUrl": "http://localhost:8080",
+      "rootUrl": "https://civica-desarrollo.avance.org.co/uis-issuer",
+      "adminUrl": "https://civica-desarrollo.avance.org.co/uis-issuer",
       "baseUrl": "",
       "surrogateAuthRequired": false,
       "enabled": true,
@@ -759,10 +760,10 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "zIKAV9DIIIaJCzHCVBPlySgU8KgY68U2",
       "redirectUris": [
-        "http://localhost:8080/*"
+        "https://civica-desarrollo.avance.org.co/uis-issuer/*"
       ],
       "webOrigins": [
-        "http://localhost:8080"
+        "https://civica-desarrollo.avance.org.co"
       ],
       "notBefore": 0,
       "bearerOnly": false,
@@ -853,7 +854,7 @@
         "resources": [
           {
             "name": "credentialEndpoint",
-            "type": "urn:pid-issuer-src:resource:wallet",
+            "type": "urn:uis-issuer-src:resource:wallet",
             "ownerManagedAccess": false,
             "displayName": "Credential issuance endpoint",
             "attributes": {},
@@ -955,13 +956,13 @@
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
       "rootUrl": "${authAdminUrl}",
-      "baseUrl": "/admin/pid-issuer-realm/console/",
+      "baseUrl": "/admin/uis-issuer-realm/console/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "/admin/pid-issuer-realm/console/*"
+        "/admin/uis-issuer-realm/console/*"
       ],
       "webOrigins": [
         "+"
@@ -1062,7 +1063,8 @@
         "eu.europa.ec.eudi.pid_vc_sd_jwt",
         "eu.europa.ec.eudi.pid_mso_mdoc",
         "org.iso.18013.5.1.mDL",
-        "urn:eu.europa.ec.eudi:learning:credential:1:dc+sd-jwt"
+        "urn:eu.europa.ec.eudi:learning:credential:1:dc+sd-jwt",
+        "urn:eudi:academic:credential:1:dc+sd-jwt"
       ]
     },
     {
@@ -1113,8 +1115,7 @@
         "access.token.signed.response.alg": "ES256",
         "id.token.signed.response.alg": "ES256"
       },
-      "authenticationFlowBindingOverrides": {
-      },
+      "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
       "protocolMappers": [
@@ -1139,7 +1140,8 @@
         "eu.europa.ec.eudi.pid_vc_sd_jwt",
         "eu.europa.ec.eudi.pid_mso_mdoc",
         "org.iso.18013.5.1.mDL",
-        "urn:eu.europa.ec.eudi:learning:credential:1:dc+sd-jwt"
+        "urn:eu.europa.ec.eudi:learning:credential:1:dc+sd-jwt",
+        "urn:eudi:academic:credential:1:dc+sd-jwt"
       ]
     }
   ],
@@ -2033,6 +2035,71 @@
             "claim.name": "resource_access.${client_id}.roles",
             "jsonType.label": "String",
             "multivalued": "true"
+          }
+        }
+      ]
+    },
+    {
+      "id": "144c5ddd-4eaa-4eac-927e-469020fb21ba",
+      "name": "urn:eudi:academic:credential:1:dc+sd-jwt",
+      "description": "",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "true",
+        "gui.order": "",
+        "consent.screen.text": "Do you consent to issue Academic Credential?"
+      },
+      "protocolMappers": [
+        {
+          "id": "77054e23-6895-41f5-9c40-79ebfdfc2d96",
+          "name": "given name",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "aggregate.attrs": "false",
+            "userinfo.token.claim": "true",
+            "multivalued": "false",
+            "user.attribute": "firstName",
+            "id.token.claim": "false",
+            "access.token.claim": "false",
+            "claim.name": "given_name",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "id": "5f349c31-2083-4659-8dc9-ad5131a10d2b",
+          "name": "family name",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "aggregate.attrs": "false",
+            "userinfo.token.claim": "true",
+            "multivalued": "false",
+            "user.attribute": "lastName",
+            "id.token.claim": "false",
+            "access.token.claim": "false",
+            "claim.name": "family_name",
+            "jsonType.label": "String"
+          }
+        },
+        {
+          "id": "fa1e918c-7b39-494c-8267-aa7ccbd90107",
+          "name": "email",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-attribute-mapper",
+          "consentRequired": false,
+          "config": {
+            "aggregate.attrs": "false",
+            "userinfo.token.claim": "true",
+            "multivalued": "false",
+            "user.attribute": "email",
+            "id.token.claim": "false",
+            "access.token.claim": "false",
+            "claim.name": "email",
+            "jsonType.label": "String"
           }
         }
       ]

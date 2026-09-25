@@ -59,6 +59,8 @@ fun configureUiSecurity(
                 webJars,
                 "",
                 "/",
+                IssuerUi.LOGIN,
+                IssuerUi.LOGOUT,
                 IssuerUi.GENERATE_CREDENTIALS_OFFER,
                 IssuerUi.SELECT_CREDENTIAL_TYPE,
                 IssuerUi.SELECT_CREDENTIAL_TYPE_BACK,

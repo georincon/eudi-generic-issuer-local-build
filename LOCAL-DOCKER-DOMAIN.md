@@ -3,7 +3,7 @@
 Desde `docker-compose/`:
 
 ```bash
-docker compose build pid-issuer
+docker compose build uis-issuer
 docker compose up -d
 ```
 
@@ -14,9 +14,9 @@ Verificación:
 ```bash
 docker image inspect eudi-generic-credential-issuer:local
 docker compose ps
-docker compose logs -f pid-issuer
+docker compose logs -f uis-issuer
 ```
 
-URL pública configurada: `https://civica-desarrollo.avance.org.co/pid-issuer`
+URL pública configurada: `https://civica-desarrollo.avance.org.co/uis-issuer`
 
 Requisitos: DNS apuntando al servidor, certificado TLS con el dominio, y reemplazar secretos de ejemplo antes de producción.

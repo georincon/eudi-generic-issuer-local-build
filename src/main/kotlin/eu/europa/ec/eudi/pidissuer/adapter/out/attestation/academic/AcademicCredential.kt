@@ -141,6 +141,7 @@ data class StudentIdentification(
 data class AcademicCredential(
     val institution: IssuingInstitution,
     val studentId: StudentIdentification,
+    val username: Username,
     val familyName: FamilyName,
     val givenName: GivenName,
     val email: String? = null,
@@ -152,6 +153,7 @@ data class AcademicCredential(
 ) {
     typealias FamilyName = NonBlankString
     typealias GivenName = NonBlankString
+    typealias Username = NonBlankString
 
     val program: AcademicProgram
         get() = academicRecord.program

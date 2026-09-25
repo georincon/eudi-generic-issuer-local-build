@@ -33,10 +33,10 @@ import kotlin.reflect.KClass
     classes = [PidIssuerApplication::class],
     webEnvironment = SpringBootTest.WebEnvironment.MOCK,
     properties = [
-        "spring.r2dbc.url=r2dbc:h2:mem:///pid_issuer;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE",
+        "spring.r2dbc.url=r2dbc:h2:mem:///uis_issuer;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=FALSE",
         "spring.r2dbc.username=sa",
         "spring.r2dbc.password=",
-        "spring.sql.init.schema-locations=file:docker-compose/postgresql/schema/V1.sql",
+        "spring.sql.init.schema-locations=file:docker-compose/postgresql/schema/uis_issuer.sql",
         "spring.sql.init.mode=embedded",
         "spring.profiles.active=develop",
     ],

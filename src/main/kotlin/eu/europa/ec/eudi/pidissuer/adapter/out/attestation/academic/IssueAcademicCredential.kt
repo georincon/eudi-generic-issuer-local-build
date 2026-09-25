@@ -190,7 +190,7 @@ fun SdJwtObjectBuilder.academicCredential(credential: AcademicCredential) {
         // Student info
         sdClaim(SdJwtVcAcademicCredentialClaims.FamilyName.name, familyName.value)
         sdClaim(SdJwtVcAcademicCredentialClaims.GivenName.name, givenName.value)
-        claim(SdJwtVcAcademicCredentialClaims.StudentId.name, studentId.number)
+        claim(SdJwtVcAcademicCredentialClaims.StudentId.name, username.value)
         claim(SdJwtVcAcademicCredentialClaims.IdentificationType.name, studentId.type.value)
         email?.let { sdClaim(SdJwtVcAcademicCredentialClaims.Email.name, it) }
         phoneNumber?.let { sdClaim(SdJwtVcAcademicCredentialClaims.PhoneNumber.name, it) }

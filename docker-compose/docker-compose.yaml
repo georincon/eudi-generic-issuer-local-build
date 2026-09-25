@@ -1,33 +1,33 @@
-version: '3.8'
+name: uis-issuer
 
 networks:
   default:
     driver: bridge
 
 services:
-  postgres:
+  postgres-uis-issuer:
     image: postgres:18.4-alpine3.24
-    container_name: postgres-issuer
+    container_name: postgres-uis-issuer
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
-      - POSTGRES_DB=pid_issuer
-      - POSTGRES_USER=pid_issuer
-      - POSTGRES_PASSWORD=pid_issuer
+      - POSTGRES_DB=uis_issuer
+      - POSTGRES_USER=uis_issuer
+      - POSTGRES_PASSWORD=uis_issuer
     volumes:
-      - ./postgresql/schema/V1.sql:/docker-entrypoint-initdb.d/01-V1.sql:RO
-      - postgres-issuer:/var/lib/postgresql
+      - ./postgresql/schema/uis_issuer.sql:/docker-entrypoint-initdb.d/01-uis_issuer.sql:RO
+      - postgres-uis-issuer:/var/lib/postgresql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U pid_issuer -d pid_issuer" ]
+      test: [ "CMD-SHELL", "pg_isready -U uis_issuer -d uis_issuer" ]
       interval: 5s
       timeout: 5s
       retries: 10
     networks:
       - default
 
-  postgres-uis:
+  postgres-uis-academic:
     image: postgres:18.4-alpine3.24
-    container_name: postgres-uis
+    container_name: postgres-uis-academic
     ports:
       - "5434:5432"
     environment:
@@ -35,8 +35,8 @@ services:
       - POSTGRES_USER=uis_academic
       - POSTGRES_PASSWORD=uis_academic
     volumes:
-      - ./postgresql/schema/db-uis.sql:/docker-entrypoint-initdb.d/01-db-uis.sql:RO
-      - postgres-uis:/var/lib/postgresql
+      - ./postgresql/schema/uis_academic.sql:/docker-entrypoint-initdb.d/01-uis_academic.sql:RO
+      - postgres-uis-academic:/var/lib/postgresql
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U uis_academic -d uis_academic" ]
       interval: 5s
@@ -52,7 +52,7 @@ services:
       args:
         VERSION: ${KEYCLOAK_ABCA_EXTENSION_VERSION}
     image: keycloak-abca:${KEYCLOAK_ABCA_EXTENSION_VERSION}
-    container_name: keycloak
+    container_name: keycloak-uis
     command:
       - start-dev
       - --import-realm
@@ -92,7 +92,7 @@ services:
       args:
         VERSION: ${STATUS_LIST_VERSION}
     image: status-list:${STATUS_LIST_VERSION}
-    container_name: status-list
+    container_name: status-list-uis
     environment:
       API_key: aaa-bbb-ccc
     volumes:
@@ -103,31 +103,31 @@ services:
     networks:
       - default
 
-  pid-issuer:
+  uis-issuer:
     build:
       context: ..
       dockerfile: Dockerfile
     image: eudi-generic-credential-issuer:local
-    container_name: pid-issuer
+    container_name: uis-issuer
     depends_on:
       keycloak:
         condition: service_healthy
-      postgres:
+      postgres-uis-issuer:
         condition: service_healthy
       status-list:
         condition: service_started
     volumes:
-      - ./pid-issuer/issuer-keys.jks:/issuer-keys.jks
+      - ./uis-issuer/issuer-keys.jks:/issuer-keys.jks
     environment:
       - JAVA_TOOL_OPTIONS=-XX:MaxDirectMemorySize=64M
       - SPRING_PROFILES_ACTIVE=insecure
-      - SPRING_WEBFLUX_BASE_PATH=/pid-issuer
-      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENTID=pid-issuer-srv
+      - SPRING_WEBFLUX_BASE_PATH=/uis-issuer
+      - SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENTID=uis-issuer-srv
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENTSECRET=zIKAV9DIIIaJCzHCVBPlySgU8KgY68U2
       - SPRING_HTTP_CODECS_MAXINMEMORYSIZE=8MB
-      - ISSUER_PUBLICURL=https://civica-desarrollo.avance.org.co/pid-issuer
-      - ISSUER_AUTHORIZATIONSERVER_PUBLICURL=https://civica-desarrollo.avance.org.co/idp/realms/pid-issuer-realm
-      - ISSUER_AUTHORIZATIONSERVER_INTROSPECTION=https://keycloak:8443/idp/realms/pid-issuer-realm/protocol/openid-connect/token/introspect
+      - ISSUER_PUBLICURL=https://civica-desarrollo.avance.org.co/uis-issuer
+      - ISSUER_AUTHORIZATIONSERVER_PUBLICURL=https://civica-desarrollo.avance.org.co/idp/realms/uis-issuer-realm
+      - ISSUER_AUTHORIZATIONSERVER_INTROSPECTION=https://keycloak:8443/idp/realms/uis-issuer-realm/protocol/openid-connect/token/introspect
       - ISSUER_KEYSTORE_FILE=file:/issuer-keys.jks
       - ISSUER_KEYSTORE_TYPE=JKS
       - ISSUER_KEYSTORE_PASSWORD=keys
@@ -150,22 +150,22 @@ services:
       - ISSUER_KEYCLOAK_CLIENT_ID=admin-cli
       - ISSUER_KEYCLOAK_USERNAME=admin
       - ISSUER_KEYCLOAK_PASSWORD=password
-      - ISSUER_KEYCLOAK_USER_REALM=pid-issuer-realm
-      - ISSUER_DPOP_REALM=pid-issuer
+      - ISSUER_KEYCLOAK_USER_REALM=uis-issuer-realm
+      - ISSUER_DPOP_REALM=uis-issuer
       - ISSUER_ACADEMIC_ENABLED=true
       - ISSUER_ACADEMIC_SD_JWT_VC_SIGNING_KEY_ALIAS=issuance
       - ISSUER_ACADEMIC_SD_JWT_VC_SIGNING_KEY_PASSWORD=issuance
-      - ISSUER_ACADEMIC_SD_JWT_VC_DURATION=P365D
-      - ISSUER_METADATA_PREFERRED-CLIENT-STATUS-PERIOD=P365D
+      - ISSUER_ACADEMIC_SD_JWT_VC_DURATION=P31D
+      - ISSUER_METADATA_PREFERRED-CLIENT-STATUS-PERIOD=P31D
       - ISSUER_ACADEMIC_SD_JWT_VC_NOTIFICATIONS_ENABLED=true
       - ISSUER_ACADEMIC_SD_JWT_VC_DIGESTS_HASH_ALGORITHM=sha-256
       - ISSUER_ACADEMIC_SD_JWT_VC_PROOFS_SUPPORTED_SIGNING_ALGORITHMS=ES256
       - ISSUER_ACADEMIC_ISSUING_COUNTRY=CO
       - ISSUER_ACADEMIC_ISSUING_JURISDICTION=CO-SAN
-      - SPRING_R2DBC_URL=r2dbc:pool:postgresql://postgres:5432/pid_issuer
-      - SPRING_R2DBC_USERNAME=pid_issuer
-      - SPRING_R2DBC_PASSWORD=pid_issuer
-      - ISSUER_UIS_DB_URL=r2dbc:pool:postgresql://postgres-uis:5432/uis_academic
+      - SPRING_R2DBC_URL=r2dbc:pool:postgresql://postgres-uis-issuer:5432/uis_issuer
+      - SPRING_R2DBC_USERNAME=uis_issuer
+      - SPRING_R2DBC_PASSWORD=uis_issuer
+      - ISSUER_UIS_DB_URL=r2dbc:pool:postgresql://postgres-uis-academic:5432/uis_academic
       - ISSUER_UIS_DB_USERNAME=uis_academic
       - ISSUER_UIS_DB_PASSWORD=uis_academic
       - ISSUER_STATUSLIST_SERVICE_GENERATE_URI=http://status-list:5000/token_status_list/take
@@ -185,14 +185,14 @@ services:
 
   haproxy:
     image: haproxy:2.8.3
-    container_name: haproxy
+    container_name: haproxy-uis
     ports:
       - "443:443"
       - "80:80"
     depends_on:
       keycloak:
         condition: service_healthy
-      pid-issuer:
+      uis-issuer:
         condition: service_started
       status-list:
         condition: service_started
@@ -205,5 +205,5 @@ services:
 volumes:
   status-lists:
   status-lists-backups:
-  postgres-issuer:
-  postgres-uis:
+  postgres-uis-issuer:
+  postgres-uis-academic:

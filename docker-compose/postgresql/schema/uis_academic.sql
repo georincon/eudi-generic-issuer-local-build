@@ -225,7 +225,7 @@ INSERT INTO datos_estudiantes (usuario_autenticacion, clave_autenticacion, nombr
 ('vmoreno',  'pass123', 'Valentina', 'Moreno',    'PEP', '1101234567', '3112345678', 'vmoreno@mail.com'),
 ('rvega',    'pass123', 'Ricardo',   'Vega',      'CC',  '1112345678', '3129876543', 'rvega@mail.com'),
 ('cortiz',   'pass123', 'Camila',    'Ortiz',     'TI',  '1123456789', '3139876543', 'cortiz@mail.com'),
-('georincon', 'Alejo2000', 'Geovani', 'Rincon',  'CC',  '91296304', '3043730066', 'georincon@gmail.com'),
+('georincon', 'asdfgh', 'Geovani', 'Rincon',  'CC',  '91296304', '3043730066', 'georincon@gmail.com'),
 ('luis123',  '123456789', 'Luis',    'Gonzalez',  'CC',  '1111111111', '3153137328', 'luisangoco26@gmail.com');
 
 -- 3. REGISTROS EN HISTORIAL_ESTUDIANTES (aprox 25 registros)
@@ -304,7 +304,7 @@ VALUES
 ((SELECT id_programa FROM programas_academicos WHERE codigo='PRE-002'), (SELECT id_estudiante FROM datos_estudiantes WHERE usuario_autenticacion='cortiz'), '2016-02-01', '2021-06-30', '4.3', 170, 10, 'GRADUADO'),
 ((SELECT id_programa FROM programas_academicos WHERE codigo='ESP-002'), (SELECT id_estudiante FROM datos_estudiantes WHERE usuario_autenticacion='cortiz'), '2022-01-15', '2023-12-15', '4.6', 32, 3, 'GRADUADO');
 
--- Estudiante 13: Geovani Rncon - graduado en PRE-001 y especialización ESP-001
+-- Estudiante 13: Geovani Rincon - graduado en PRE-001 y especialización ESP-001
 INSERT INTO historial_estudiantes (programa_id, estudiante_id, fecha_ingreso, fecha_de_grado, promedio_acumulado, creditos_aprobados, semestres_cursados, estado_academico)
 VALUES
 ((SELECT id_programa FROM programas_academicos WHERE codigo='PRE-001'), (SELECT id_estudiante FROM datos_estudiantes WHERE usuario_autenticacion='georincon'), '2016-02-01', '2023-09-12', '3.8', 170, 10, 'GRADUADO'),
@@ -313,7 +313,7 @@ VALUES
 -- Estudiante 14: Luis Gonzalez - graduado en PRE-001
 INSERT INTO historial_estudiantes (programa_id, estudiante_id, fecha_ingreso, fecha_de_grado, promedio_acumulado, creditos_aprobados, semestres_cursados, estado_academico)
 VALUES
-((SELECT id_programa FROM programas_academicos WHERE codigo='PRE-001'), (SELECT id_estudiante FROM datos_estudiantes WHERE usuario_autenticacion='luis3132'), '2018-01-15', '2024-12-15', '4.2', 170, 10, 'GRADUADO');
+((SELECT id_programa FROM programas_academicos WHERE codigo='PRE-001'), (SELECT id_estudiante FROM datos_estudiantes WHERE usuario_autenticacion='luis123'), '2018-01-15', '2024-12-15', '4.2', 170, 10, 'GRADUADO');
 
 
 -- ============================================================

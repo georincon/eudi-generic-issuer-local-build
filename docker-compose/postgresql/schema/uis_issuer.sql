@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS issued_credential (
+CREATE TABLE IF NOT EXISTS academic_credential (
     id                          BIGSERIAL PRIMARY KEY,
     credential_format           VARCHAR(255)  NOT NULL,
     credential_type             VARCHAR(255)  NOT NULL,
@@ -14,6 +14,6 @@ CREATE TABLE IF NOT EXISTS issued_credential (
     credential_identifier       UUID          NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_issued_credential_notification_id ON issued_credential (notification_id);
-CREATE INDEX IF NOT EXISTS idx_issued_credential_expires_at ON issued_credential (expires_at);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_issued_credential_uuid ON issued_credential (credential_identifier);
+CREATE INDEX IF NOT EXISTS idx_academic_credential_notification_id ON academic_credential (notification_id);
+CREATE INDEX IF NOT EXISTS idx_academic_credential_expires_at ON academic_credential (expires_at);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_academic_credential_uuid ON academic_credential (credential_identifier);

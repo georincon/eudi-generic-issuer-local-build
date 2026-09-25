@@ -1,5 +1,5 @@
 {
-  "realm": "pid-issuer-realm",
+  "realm": "uis-issuer-realm",
   "users": [
     {
       "id": "60b8ba5f-c73f-4976-b0da-48d0e53335de",
@@ -79,19 +79,19 @@
     {
       "id": "cfddc8df-b7b8-4038-a74d-1a6582a84989",
       "createdTimestamp": 1700060675127,
-      "username": "service-account-pid-issuer-srv",
+      "username": "service-account-uis-issuer-srv",
       "enabled": true,
       "totp": false,
       "emailVerified": false,
-      "serviceAccountClientId": "pid-issuer-srv",
+      "serviceAccountClientId": "uis-issuer-srv",
       "credentials": [],
       "disableableCredentialTypes": [],
       "requiredActions": [],
       "realmRoles": [
-        "default-roles-pid-issuer-realm"
+        "default-roles-uis-issuer-realm"
       ],
       "clientRoles": {
-        "pid-issuer-srv": [
+        "uis-issuer-srv": [
           "uma_protection"
         ]
       },
