@@ -139,6 +139,22 @@ class GetAcademicDataFromDatabase(
             IssueCredentialError.AttestationDatasetNotFound
         }
 
+        val selection = fetchSelection(student.usuarioAutenticacion)
+        if (selection != null) {
+            log.info(
+                "Using selected program for user {}: programa={}, historial={}",
+                username,
+                selection.programaId,
+                selection.historialId,
+            )
+            return buildAcademicCredential(student, selection)
+        }
+
+        log.warn(
+            "No stored program selection for user {}, falling back to the GRADUADO-first heuristic",
+            username,
+        )
+
         val historyRecords = fetchAcademicHistory(student.usuarioAutenticacion)
         ensure(historyRecords.isNotEmpty()) {
             log.warn("No academic records found for student: {}", username)
@@ -430,6 +446,70 @@ class GetAcademicDataFromDatabase(
             }.awaitOneOrNull()
     }
 
+    private fun parseLocalDateOrNull(value: String?): LocalDate? =
+        value?.let {
+            try {
+                LocalDate.parse(it)
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+    /**
+     * Builds the credential straight from a user's stored program [selection], so the person
+     * whose credentials-offer QR was generated for a specific program (e.g. a specialization)
+     * actually receives that program's data instead of always the GRADUADO-first heuristic.
+     */
+    private fun buildAcademicCredential(
+        student: StudentRecord,
+        selection: SelectionInfo,
+    ): AcademicCredential {
+        val localDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+
+        return AcademicCredential(
+            institution =
+                IssuingInstitution(
+                    name = NonBlankString(databaseConfig.institutionName),
+                    country = NonBlankString(databaseConfig.institutionCountry),
+                    uri = HttpsUrl.unsafe(databaseConfig.institutionUri),
+                    nit = databaseConfig.institutionNit,
+                ),
+            studentId =
+                StudentIdentification(
+                    type = IdentificationType.valueOf(student.tipoIdentificacion),
+                    number = student.numeroIdentificacion,
+                ),
+            username = NonBlankString(student.usuarioAutenticacion),
+            familyName = NonBlankString(student.apellidos),
+            givenName = NonBlankString(student.nombres),
+            email = student.correoElectronico,
+            phoneNumber = student.numeroContacto,
+            academicRecord =
+                AcademicRecord(
+                    program =
+                        AcademicProgram(
+                            code = NonBlankString(selection.codigo),
+                            name = NonBlankString(selection.nombre),
+                            level = AcademicLevel.valueOf(selection.nivelAcademico),
+                            modality = ProgramModality.valueOf(selection.modalidad),
+                            faculty = selection.facultad,
+                            academicUnit = selection.unidadAcademica,
+                            awardedTitle = selection.tituloOtorgado,
+                            durationSemesters = selection.duracionSemestres,
+                            totalCredits = selection.creditos,
+                        ),
+                    enrollmentDate = parseLocalDateOrNull(selection.fechaIngreso),
+                    graduationDate = parseLocalDateOrNull(selection.fechaDeGrado),
+                    accumulatedAverage = selection.promedioAcumulado,
+                    approvedCredits = selection.creditosAprobados,
+                    semestersCompleted = selection.semestresCursados,
+                    status = AcademicStatus.valueOf(selection.estadoAcademico),
+                ),
+            dateOfIssuance = localDate,
+            documentNumber = student.numeroIdentificacion,
+        )
+    }
+
     private fun buildAcademicCredential(
         student: StudentRecord,
         program: ProgramRecord,
@@ -438,23 +518,8 @@ class GetAcademicDataFromDatabase(
         val now = Clock.System.now()
         val localDate = now.toLocalDateTime(TimeZone.currentSystemDefault()).date
 
-        val enrollmentDate =
-            history.fechaIngreso?.let {
-                try {
-                    LocalDate.parse(it)
-                } catch (e: Exception) {
-                    null
-                }
-            }
-
-        val graduationDate =
-            history.fechaDeGrado?.let {
-                try {
-                    LocalDate.parse(it)
-                } catch (e: Exception) {
-                    null
-                }
-            }
+        val enrollmentDate = parseLocalDateOrNull(history.fechaIngreso)
+        val graduationDate = parseLocalDateOrNull(history.fechaDeGrado)
 
         return AcademicCredential(
             institution =

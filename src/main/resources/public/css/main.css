@@ -289,7 +289,21 @@ a:hover {
     border-right: none;
 }
 
+.login-input-group .login-input-icon-right {
+    border-right: 1px solid var(--uis-border);
+    border-left: none;
+    cursor: pointer;
+}
+
+.login-input-group .login-input-icon-right:hover {
+    background-color: var(--uis-green-light);
+}
+
 .login-input-group .form-control {
+    border-left: none;
+}
+
+.login-input-group input.form-control + .login-input-icon-right {
     border-left: none;
 }
 

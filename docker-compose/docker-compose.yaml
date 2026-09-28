@@ -82,6 +82,7 @@ services:
       - ./keycloak/realms/:/opt/keycloak/data/import
       - ./keycloak/certs/:/etc/ssl/certs/
       - ./keycloak/conf/keycloak.conf:/opt/keycloak/conf/keycloak.conf
+      - keycloak-uis-data:/opt/keycloak/data
     networks:
       - default
 
@@ -122,6 +123,8 @@ services:
       - JAVA_TOOL_OPTIONS=-XX:MaxDirectMemorySize=64M
       - SPRING_PROFILES_ACTIVE=insecure
       - SPRING_WEBFLUX_BASE_PATH=/uis-issuer
+      - SERVER_REACTIVE_SESSION_COOKIE_PATH=/uis-issuer
+      - SERVER_REACTIVE_SESSION_COOKIE_SAME-SITE=lax
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENTID=uis-issuer-srv
       - SPRING_SECURITY_OAUTH2_RESOURCESERVER_OPAQUETOKEN_CLIENTSECRET=zIKAV9DIIIaJCzHCVBPlySgU8KgY68U2
       - SPRING_HTTP_CODECS_MAXINMEMORYSIZE=8MB
@@ -207,3 +210,4 @@ volumes:
   status-lists-backups:
   postgres-uis-issuer:
   postgres-uis-academic:
+  keycloak-uis-data:

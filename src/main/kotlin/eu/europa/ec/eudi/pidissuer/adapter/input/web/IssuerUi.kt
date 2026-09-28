@@ -192,8 +192,9 @@ class IssuerUi(
     }
 
     private suspend fun handleLookupStudent(request: ServerRequest): ServerResponse {
-        request.requireStudentSession()
+        val session = request.requireStudentSession()
             ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+        val studentFullName = session.attributes[SESSION_STUDENT_FULLNAME]
 
         log.info("Looking up student by document number")
         val formData = request.awaitFormData()
@@ -210,6 +211,7 @@ class IssuerUi(
                         "error" to "Debe ingresar un número de documento válido",
                         "credentialsOfferUri" to (credentialsOfferUri ?: createCredentialsOffer.defaultCredentialOfferUri.toString()),
                         "openid4VciVersion" to OpenId4VciSpec.VERSION,
+                        "studentFullName" to studentFullName,
                     ),
                 )
         }
@@ -225,6 +227,7 @@ class IssuerUi(
                         "error" to "No se encontró estudiante con documento: $documentoIdentidad",
                         "credentialsOfferUri" to (credentialsOfferUri ?: createCredentialsOffer.defaultCredentialOfferUri.toString()),
                         "openid4VciVersion" to OpenId4VciSpec.VERSION,
+                        "studentFullName" to studentFullName,
                     ),
                 )
         }
@@ -240,13 +243,15 @@ class IssuerUi(
                     "credentialsOfferUri" to (credentialsOfferUri ?: createCredentialsOffer.defaultCredentialOfferUri.toString()),
                     "openid4VciVersion" to OpenId4VciSpec.VERSION,
                     "usefulLinks" to usefulLinks,
+                    "studentFullName" to studentFullName,
                 ),
             )
     }
 
     private suspend fun handleSelectCredentialType(request: ServerRequest): ServerResponse {
-        request.requireStudentSession()
+        val session = request.requireStudentSession()
             ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+        val studentFullName = session.attributes[SESSION_STUDENT_FULLNAME]
 
         log.info("Selecting credential type and loading programs")
         val formData = request.awaitFormData()
@@ -266,6 +271,7 @@ class IssuerUi(
                         "error" to "No se encontró estudiante con documento: $numeroIdentificacion",
                         "credentialsOfferUri" to (credentialsOfferUri ?: createCredentialsOffer.defaultCredentialOfferUri.toString()),
                         "openid4VciVersion" to OpenId4VciSpec.VERSION,
+                        "studentFullName" to studentFullName,
                     ),
                 )
         }
@@ -281,6 +287,7 @@ class IssuerUi(
                         "error" to "No se encontraron registros académicos para el estudiante",
                         "credentialsOfferUri" to (credentialsOfferUri ?: createCredentialsOffer.defaultCredentialOfferUri.toString()),
                         "openid4VciVersion" to OpenId4VciSpec.VERSION,
+                        "studentFullName" to studentFullName,
                     ),
                 )
         }
@@ -298,13 +305,15 @@ class IssuerUi(
                     "credentialsOfferUri" to (credentialsOfferUri ?: createCredentialsOffer.defaultCredentialOfferUri.toString()),
                     "openid4VciVersion" to OpenId4VciSpec.VERSION,
                     "usefulLinks" to usefulLinks,
+                    "studentFullName" to studentFullName,
                 ),
             )
     }
 
     private suspend fun handleSelectCredentialTypeBack(request: ServerRequest): ServerResponse {
-        request.requireStudentSession()
+        val session = request.requireStudentSession()
             ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+        val studentFullName = session.attributes[SESSION_STUDENT_FULLNAME]
 
         log.info("Going back to credential type selection")
         val usuarioAutenticacion = request.queryParam("usuarioAutenticacion").orElse("").orEmpty()
@@ -330,6 +339,7 @@ class IssuerUi(
                     "credentialsOfferUri" to (credentialsOfferUri.ifBlank { createCredentialsOffer.defaultCredentialOfferUri.toString() }),
                     "openid4VciVersion" to OpenId4VciSpec.VERSION,
                     "usefulLinks" to usefulLinks,
+                    "studentFullName" to studentFullName,
                 ),
             )
     }
