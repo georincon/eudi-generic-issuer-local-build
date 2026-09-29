@@ -65,6 +65,7 @@ fun configureUiSecurity(
                 IssuerUi.SELECT_CREDENTIAL_TYPE,
                 IssuerUi.SELECT_CREDENTIAL_TYPE_BACK,
                 IssuerUi.SELECT_PROGRAM,
+                IssuerUi.SELECT_PROGRAM_BACK,
             )
 
         securityMatcher(pathMatcher)

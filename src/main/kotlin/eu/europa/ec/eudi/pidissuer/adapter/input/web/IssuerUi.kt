@@ -97,6 +97,13 @@ class IssuerUi(
                 ::handleSelectCredentialTypeBack,
             )
 
+            // Step 4b: Go back from the QR page to program selection (same student/credential type)
+            GET(
+                SELECT_PROGRAM_BACK,
+                contentType(MediaType.ALL) and accept(MediaType.TEXT_HTML),
+                ::handleSelectProgramBack,
+            )
+
             // Step 4: Save selection and generate credential offer
             POST(
                 SELECT_PROGRAM,
@@ -344,14 +351,52 @@ class IssuerUi(
             )
     }
 
-    private suspend fun handleSelectProgram(request: ServerRequest): ServerResponse {
-        request.requireStudentSession()
+    private suspend fun handleSelectProgramBack(request: ServerRequest): ServerResponse {
+        val session = request.requireStudentSession()
             ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+        val studentFullName = session.attributes[SESSION_STUDENT_FULLNAME]
+
+        log.info("Going back to program selection")
+        val numeroIdentificacion = request.queryParam("numeroIdentificacion").orElse("").orEmpty()
+        val credentialType = request.queryParam("credentialType").orElse("").orEmpty()
+        val credentialsOfferUri = request.queryParam("credentialsOfferUri").orElse("")
+
+        val student = getAcademicDataFromDatabase.findStudentByDocumentNumber(numeroIdentificacion)
+        if (student == null) {
+            return ServerResponse
+                .status(HttpStatus.SEE_OTHER)
+                .renderAndAwait("redirect:$GENERATE_CREDENTIALS_OFFER")
+        }
+
+        val programs = getAcademicDataFromDatabase.findStudentPrograms(student.usuarioAutenticacion)
+        val usefulLinks = createUsefulLinks(metadata.id, metadata.authorizationServers[0])
+        return ServerResponse
+            .ok()
+            .contentType(MediaType.TEXT_HTML)
+            .renderAndAwait(
+                "select-academic-program",
+                mapOf(
+                    "student" to student,
+                    "programs" to programs,
+                    "credentialType" to credentialType,
+                    "credentialsOfferUri" to (credentialsOfferUri.ifBlank { createCredentialsOffer.defaultCredentialOfferUri.toString() }),
+                    "openid4VciVersion" to OpenId4VciSpec.VERSION,
+                    "usefulLinks" to usefulLinks,
+                    "studentFullName" to studentFullName,
+                ),
+            )
+    }
+
+    private suspend fun handleSelectProgram(request: ServerRequest): ServerResponse {
+        val session = request.requireStudentSession()
+            ?: return ServerResponse.status(HttpStatus.SEE_OTHER).renderAndAwait("redirect:$LOGIN")
+        val studentFullName = session.attributes[SESSION_STUDENT_FULLNAME]
 
         log.debug("Saving selection and generating credential offer")
         val formData = request.awaitFormData()
         val usuarioAutenticacion = formData["usuarioAutenticacion"]?.firstOrNull().orEmpty()
         val numeroIdentificacion = formData["numeroIdentificacion"]?.firstOrNull().orEmpty()
+        val credentialType = formData["credentialType"]?.firstOrNull().orEmpty()
         val programmaId = formData["programaId"]?.firstOrNull()?.toLongOrNull() ?: 0L
         val historialId = formData["historialId"]?.firstOrNull()?.toLongOrNull() ?: 0L
         val credentialsOfferUri = formData["credentialsOfferUri"]?.firstOrNull()
@@ -368,12 +413,19 @@ class IssuerUi(
             val createCredentialOfferRequest = CreateCredentialsOffer.Request(credentialIds, credentialsOfferUri)
             createCredentialsOffer(createCredentialOfferRequest)
         }.fold(
-            transform = { credentialsOfferUri ->
-                context(generateQrCode) { credentialsOfferUri.credentialOfferSuccessResponse() }
+            transform = { generatedOfferUri ->
+                context(generateQrCode) {
+                    generatedOfferUri.credentialOfferSuccessResponse(
+                        studentFullName,
+                        numeroIdentificacion,
+                        credentialType,
+                        credentialsOfferUri.orEmpty(),
+                    )
+                }
             },
             recover = { error ->
                 log.warn("Unable to generate Credentials Offer. Error: {}", error)
-                error.credentialOfferErrorResponse()
+                error.credentialOfferErrorResponse(studentFullName)
             },
         )
     }
@@ -417,6 +469,7 @@ class IssuerUi(
         const val SELECT_CREDENTIAL_TYPE: String = "/issuer/credentialsOffer/selectCredentialType"
         const val SELECT_CREDENTIAL_TYPE_BACK: String = "/issuer/credentialsOffer/selectCredentialTypeBack"
         const val SELECT_PROGRAM: String = "/issuer/credentialsOffer/selectProgram"
+        const val SELECT_PROGRAM_BACK: String = "/issuer/credentialsOffer/selectProgramBack"
         private const val SESSION_STUDENT_USERNAME: String = "studentUsername"
         private const val SESSION_STUDENT_FULLNAME: String = "studentFullName"
         private val log = LoggerFactory.getLogger(IssuerUi::class.java)
@@ -424,7 +477,12 @@ class IssuerUi(
 }
 
 context(generateQrCode: GenerateQqCode)
-private suspend fun Uri.credentialOfferSuccessResponse(): ServerResponse {
+private suspend fun Uri.credentialOfferSuccessResponse(
+    studentFullName: Any?,
+    numeroIdentificacion: String,
+    credentialType: String,
+    credentialsOfferUri: String,
+): ServerResponse {
     val uri = this@credentialOfferSuccessResponse
     val qrCode = generateQrCode(uri, Format.PNG, Dimensions(Pixels(300u), Pixels(300u)))
     return ServerResponse
@@ -436,11 +494,15 @@ private suspend fun Uri.credentialOfferSuccessResponse(): ServerResponse {
                 "uri" to uri.toString(),
                 "qrCode" to Base64.encode(qrCode),
                 "qrCodeMediaType" to "image/png",
+                "studentFullName" to studentFullName,
+                "numeroIdentificacion" to numeroIdentificacion,
+                "credentialType" to credentialType,
+                "credentialsOfferUri" to credentialsOfferUri,
             ),
         )
 }
 
-private suspend fun CreateCredentialsOffer.Error.credentialOfferErrorResponse(): ServerResponse =
+private suspend fun CreateCredentialsOffer.Error.credentialOfferErrorResponse(studentFullName: Any?): ServerResponse =
     ServerResponse
         .badRequest()
         .contentType(MediaType.TEXT_HTML)
@@ -449,5 +511,6 @@ private suspend fun CreateCredentialsOffer.Error.credentialOfferErrorResponse():
             mapOf(
                 "error" to this::class.java.canonicalName,
                 "openid4VciVersion" to OpenId4VciSpec.VERSION,
+                "studentFullName" to studentFullName,
             ),
         )
