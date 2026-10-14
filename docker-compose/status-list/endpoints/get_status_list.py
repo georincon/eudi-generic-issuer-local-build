@@ -1,11 +1,11 @@
 
 @token.route("/<country>/<doctype>/<list>", methods=["GET"])
 def get_status_list(country, doctype, list):
-    accept = request.headers.get("Accept")
-    if accept == "application/statuslist+jwt":
+    accept = request.headers.get("Accept", "")
+    if "application/statuslist+jwt" in accept:
         filename = "token_status_list.jwt"
         mimetype = "application/statuslist+jwt"
-    elif accept == "application/statuslist+cwt":
+    elif "application/statuslist+cwt" in accept:
         filename = "token_status_list.cwt"
         mimetype = "application/statuslist+cwt"
     else:

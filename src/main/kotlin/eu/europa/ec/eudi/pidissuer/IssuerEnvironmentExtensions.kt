@@ -16,6 +16,7 @@
 package eu.europa.ec.eudi.pidissuer
 
 import arrow.core.*
+import com.eygraber.uri.Uri
 import com.eygraber.uri.Url
 import com.nimbusds.jose.CompressionAlgorithm
 import com.nimbusds.jose.EncryptionMethod
@@ -64,6 +65,7 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.web.reactive.function.client.WebClient
 import java.security.KeyStore
 import java.security.cert.X509Certificate
+import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
@@ -562,6 +564,26 @@ internal object IssuerFactory {
         val notificationsEnabled =
             ctx.env.getProperty<Boolean>("issuer.academic.sd_jwt_vc.notifications.enabled") ?: true
 
+        val displayName =
+            ctx.env.getProperty(
+                "issuer.academic.sd_jwt_vc.display.name",
+                "Academic Credential (SD-JWT VC Compact)",
+            )
+        val displayLocale =
+            ctx.env.getProperty<String>("issuer.academic.sd_jwt_vc.display.locale")
+                ?.let { Locale.forLanguageTag(it) }
+                ?: Locale.ENGLISH
+        val displayDescription = ctx.env.getProperty<String>("issuer.academic.sd_jwt_vc.display.description")
+        val displayLogoUri = ctx.env.getProperty<String>("issuer.academic.sd_jwt_vc.display.logo.uri")
+        val displayLogoAlternativeText =
+            ctx.env.getProperty<String>("issuer.academic.sd_jwt_vc.display.logo.alternative-text")
+        val display =
+            CredentialDisplay(
+                name = DisplayName(displayName, displayLocale),
+                logo = displayLogoUri?.let { ImageUri(Uri.parse(it), displayLogoAlternativeText) },
+                description = displayDescription,
+            )
+
         return IssueAcademicCredential(
             sdJwtVcSerialization = SdJwtVcSerialization.Compact,
             clock = ctx.clock,
@@ -578,6 +600,7 @@ internal object IssuerFactory {
             validateProof = ctx.validateProof,
             generateNotificationId = ctx.generateNotificationId.takeIf { notificationsEnabled },
             storeIssuedCredential = ctx.storeIssuedCredential,
+            display = display,
         )
     }
 }

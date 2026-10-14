@@ -131,8 +131,9 @@ class IssueAcademicCredential private constructor(
             validateProof: ValidateProof,
             generateNotificationId: GenerateNotificationId?,
             storeIssuedCredential: StoreIssuedCredential,
+            display: CredentialDisplay? = null,
         ): IssueAcademicCredential {
-            val credentialConfiguration = cfg(deviceBinding, credentialReusePolicy, validity, issuerSigningKey)
+            val credentialConfiguration = cfg(deviceBinding, credentialReusePolicy, validity, issuerSigningKey, display)
             return IssueAcademicCredential(
                 credentialConfiguration,
                 clock,
@@ -155,13 +156,14 @@ class IssueAcademicCredential private constructor(
             credentialReusePolicy: CredentialReusePolicy,
             validity: Duration,
             issuerSigningKey: IssuerSigningKey,
+            display: CredentialDisplay?,
         ): SdJwtVcCredentialConfiguration =
             SdJwtVcCredentialConfiguration(
                 CredentialConfigurationId(AcademicCredentialScope.value),
                 Scope(AcademicCredentialScope.value),
                 display =
                     nonEmptyListOf(
-                        CredentialDisplay(
+                        display ?: CredentialDisplay(
                             DisplayName.en("Academic Credential (SD-JWT VC Compact)"),
                         ),
                     ),

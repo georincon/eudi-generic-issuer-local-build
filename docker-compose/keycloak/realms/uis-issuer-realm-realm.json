@@ -459,13 +459,13 @@
     "totpAppFreeOTPName",
     "totpAppGoogleName"
   ],
-  "webAuthnPolicyRpEntityName": "https://localhost/idp",
+  "webAuthnPolicyRpEntityName": "https://civica-desarrollo.avance.org.co/idp",
   "webAuthnPolicySignatureAlgorithms": [
     "ES256",
     "ES384",
     "ES512"
   ],
-  "webAuthnPolicyRpId": "localhost",
+  "webAuthnPolicyRpId": "civica-desarrollo.avance.org.co",
   "webAuthnPolicyAttestationConveyancePreference": "not specified",
   "webAuthnPolicyAuthenticatorAttachment": "not specified",
   "webAuthnPolicyRequireResidentKey": "not specified",
@@ -474,13 +474,13 @@
   "webAuthnPolicyAvoidSameAuthenticatorRegister": false,
   "webAuthnPolicyAcceptableAaguids": [],
   "webAuthnPolicyExtraOrigins": [],
-  "webAuthnPolicyPasswordlessRpEntityName": "https://localhost/idp",
+  "webAuthnPolicyPasswordlessRpEntityName": "https://civica-desarrollo.avance.org.co/idp",
   "webAuthnPolicyPasswordlessSignatureAlgorithms": [
     "ES256",
     "ES384",
     "ES512"
   ],
-  "webAuthnPolicyPasswordlessRpId": "localhost",
+  "webAuthnPolicyPasswordlessRpId": "civica-desarrollo.avance.org.co",
   "webAuthnPolicyPasswordlessAttestationConveyancePreference": "not specified",
   "webAuthnPolicyPasswordlessAuthenticatorAttachment": "not specified",
   "webAuthnPolicyPasswordlessRequireResidentKey": "not specified",

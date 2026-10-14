@@ -39,3 +39,9 @@ out/
 
 ### Other ###
 application-prod.properties
+
+### UIS CA - clave privada de la raiz, nunca se comparte ###
+docker-compose/uis-issuer/secretos/
+
+### Status-list CA - clave privada de la raiz, nunca se comparte ###
+docker-compose/status-list/secretos/
